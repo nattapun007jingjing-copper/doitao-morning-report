@@ -22,6 +22,9 @@ def save_to_sheets(date_str, teacher_str, day_str, detail_str, pdf_link):
         return False
 
 # --- ส่วนหน้าจอหลัก ---
+# ส่วนแสดงโลโก้ (ถ้าคุณครูมีไฟล์โลโก้อยู่ในโฟลเดอร์ ให้ใส่ชื่อไฟล์แทน 'logo.png')
+# st.image("logo.png", width=200) 
+
 st.title("โรงเรียนดอยเต่าวิทยาคม")
 st.subheader("📝 แบบบันทึกรายงานเวรเช้า (ระบบออนไลน์)")
 
@@ -31,7 +34,17 @@ selected_day = st.selectbox("เวรประจำวัน", ["-- เลื�
 report_date = st.date_input("วันที่บันทึกรายงาน", datetime.date.today())
 report_detail = st.text_area("รายงานเวร", height=200)
 
-# ส่วนรับลิงก์ไฟล์ PDF (คุณครูสามารถอัปโหลดไฟล์ลง Drive แล้วก๊อปปี้ลิงก์มาวางได้เลยครับ)
+# ระบบอัปโหลดรูปภาพ
+st.markdown("### 📸 ภาพประกอบ")
+uploaded_files = st.file_uploader("เลือกรูปภาพเพื่อแสดงในรายงาน", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+
+if uploaded_files:
+    st.markdown("#### 🖼️ ภาพที่อัปโหลดปัจจุบัน")
+    img_cols = st.columns(3)
+    for index, file in enumerate(uploaded_files):
+        with img_cols[index % 3]:
+            st.image(file, use_container_width=True)
+
 pdf_link = st.text_input("วางลิงก์ไฟล์ PDF (ถ้ามี):", placeholder="https://drive.google.com/...")
 
 # ปุ่มประมวลผล
@@ -39,9 +52,7 @@ if st.button("⚙️ ประมวลผลและส่งข้อมู�
     if selected_teacher == "-- เลือกชื่อครูผู้รายงาน --" or selected_day == "-- เลือกวันประจำวัน --" or not report_detail:
         st.error("❌ กรุณากรอกข้อมูลให้ครบถ้วนก่อนกดบันทึก")
     else:
-        # บันทึกข้อมูล
         success = save_to_sheets(report_date.strftime('%d/%m/%Y'), selected_teacher, selected_day, report_detail, pdf_link)
-        
         if success:
             st.success("🎉 บันทึกข้อมูลลงฐานข้อมูลส่วนกลางเรียบร้อย!")
             st.balloons()

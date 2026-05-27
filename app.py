@@ -23,9 +23,9 @@ def save_to_sheets(date_str, teacher_str, day_str, detail_str, pdf_link):
         return False
 
 # --- ส่วนหน้าจอหลัก ---
-# แสดงโลโก้ (ถ้ามีไฟล์ชื่อ logo.png ใน GitHub จะแสดงผลอัตโนมัติ)
-if os.path.exists("logo.png"):
-    st.image("logo.png", width=150)
+# แก้ไขชื่อไฟล์เป็น logo.jpg ตามที่ปรากฏใน GitHub ของคุณครูครับ
+if os.path.exists("logo.jpg"):
+    st.image("logo.jpg", width=150)
 
 st.title("โรงเรียนดอยเต่าวิทยาคม")
 st.subheader("📝 แบบบันทึกรายงานเวรเช้า (ระบบออนไลน์)")

@@ -1,31 +1,21 @@
 import streamlit as st
 import datetime
-import os
-from PIL import Image
-from io import BytesIO
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-
-# เชื่อมต่อ Google Sheets
-from google.oauth2.service_account import Credentials
 import gspread
+from google.oauth2.service_account import Credentials
 
 # --- ตั้งค่าหน้าจอ ---
 st.set_page_config(page_title="แบบบันทึกรายงานเวรเช้า", layout="centered")
 
 # --- ฟังก์ชันบันทึก Sheets ---
-def save_to_sheets(date_str, teacher_str, day_str, detail_str):
+def save_to_sheets(date_str, teacher_str, day_str, detail_str, pdf_link):
     try:
         scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
         creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
         client = gspread.authorize(creds)
         sh = client.open("database_morning_report")
         worksheet = sh.get_worksheet(0)
-        worksheet.append_row([date_str, teacher_str, day_str, detail_str])
+        # บันทึก 5 คอลัมน์: วันที่, ชื่อครู, วัน, รายละเอียด, ลิงก์ PDF
+        worksheet.append_row([date_str, teacher_str, day_str, detail_str, pdf_link])
         return True
     except Exception as e:
         st.error(f"เกิดข้อผิดพลาดในการบันทึกลง Sheets: {e}")
@@ -41,16 +31,8 @@ selected_day = st.selectbox("เวรประจำวัน", ["-- เลื�
 report_date = st.date_input("วันที่บันทึกรายงาน", datetime.date.today())
 report_detail = st.text_area("รายงานเวร", height=200)
 
-# ส่วนอัปโหลดรูปภาพ
-st.markdown("### 📸 ภาพประกอบ")
-uploaded_files = st.file_uploader("เลือกรูปภาพเพื่อแสดงในรายงาน", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
-
-if uploaded_files:
-    st.markdown("#### 🖼️ ภาพที่อัปโหลดปัจจุบัน")
-    img_cols = st.columns(3)
-    for index, file in enumerate(uploaded_files):
-        with img_cols[index % 3]:
-            st.image(file, use_container_width=True)
+# ส่วนรับลิงก์ไฟล์ PDF (คุณครูสามารถอัปโหลดไฟล์ลง Drive แล้วก๊อปปี้ลิงก์มาวางได้เลยครับ)
+pdf_link = st.text_input("วางลิงก์ไฟล์ PDF (ถ้ามี):", placeholder="https://drive.google.com/...")
 
 # ปุ่มประมวลผล
 if st.button("⚙️ ประมวลผลและส่งข้อมูลเข้าฐานข้อมูล", type="primary", use_container_width=True):
@@ -58,7 +40,7 @@ if st.button("⚙️ ประมวลผลและส่งข้อมู�
         st.error("❌ กรุณากรอกข้อมูลให้ครบถ้วนก่อนกดบันทึก")
     else:
         # บันทึกข้อมูล
-        success = save_to_sheets(report_date.strftime('%d/%m/%Y'), selected_teacher, selected_day, report_detail)
+        success = save_to_sheets(report_date.strftime('%d/%m/%Y'), selected_teacher, selected_day, report_detail, pdf_link)
         
         if success:
             st.success("🎉 บันทึกข้อมูลลงฐานข้อมูลส่วนกลางเรียบร้อย!")

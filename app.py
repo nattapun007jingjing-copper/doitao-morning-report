@@ -15,7 +15,7 @@ def save_to_sheets(date_str, teacher_str, day_str, detail_str):
         client = gspread.authorize(creds)
         sh = client.open("database_morning_report")
         worksheet = sh.get_worksheet(0)
-        # บันทึก 4 คอลัมน์แรก (คอลัมน์ที่ 5 จะรอ Apps Script เติมลิงก์ PDF ให้)
+        # บันทึกข้อมูล 4 คอลัมน์ (คอลัมน์ที่ 5 คือลิงก์ PDF ที่ Apps Script จะเติมให้)
         worksheet.append_row([date_str, teacher_str, day_str, detail_str])
         return True
     except Exception as e:
@@ -27,15 +27,27 @@ if os.path.exists("logo.jpg"):
     st.image("logo.jpg", width=150)
 
 st.title("โรงเรียนดอยเต่าวิทยาคม")
-st.subheader("📝 ระบบบันทึกรายงานเวรเช้า (สร้าง PDF อัตโนมัติ)")
+st.subheader("📝 ระบบบันทึกรายงานเวรเช้า")
 
+# ฟอร์มกรอกข้อมูล
 teacher_list = ["-- เลือกชื่อครูผู้รายงาน --", "ครูชลธิดา", "ครูศิวิไล", "ครูวีระพงศ์", "ครูขนิญฐา", "ครูนงคราญ"]
 selected_teacher = st.selectbox("ชื่อครูผู้รายงานเวร", teacher_list)
 selected_day = st.selectbox("เวรประจำวัน", ["-- เลือกวันประจำวัน --", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์"])
 report_date = st.date_input("วันที่บันทึกรายงาน", datetime.date.today())
 report_detail = st.text_area("รายงานเวร", height=200)
 
-if st.button("⚙️ ประมวลผลและสร้างรายงาน", type="primary", use_container_width=True):
+# ระบบอัปโหลดรูปภาพ (ที่หายไป)
+st.markdown("### 📸 ภาพประกอบ")
+uploaded_files = st.file_uploader("เลือกรูปภาพเพื่อแสดงในรายงาน (ดูหน้าเว็บเท่านั้น)", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+
+if uploaded_files:
+    img_cols = st.columns(3)
+    for index, file in enumerate(uploaded_files):
+        with img_cols[index % 3]:
+            st.image(file, use_container_width=True)
+
+# ปุ่มประมวลผล
+if st.button("⚙️ ประมวลผลและส่งข้อมูลเข้าฐานข้อมูล", type="primary", use_container_width=True):
     if selected_teacher == "-- เลือกชื่อครูผู้รายงาน --" or selected_day == "-- เลือกวันประจำวัน --" or not report_detail:
         st.error("❌ กรุณากรอกข้อมูลให้ครบถ้วน")
     else:
